@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Atlantis Chess Engine</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="/static/js/chessboard-1.0.0.min.js"></script>
+    <script src="/static/js/chess.js"></script>
+</head>
+<body>
+    <div id="titulo">
+        <h1>Atlantis</h1>
+    </div>
+    <div id="main_container">
+        <h2>Introdução</h2>
+        <p>Este projeto foi criado no âmbito da minha Prova de Aptidão Profissional. Consiste numa inteligência artificial que utiliza os algoritmos MiniMax e Alpha-Beta Pruning. Esta aplicação foi implementada utilizando Python, CSS, JavaScript e HTML.</p>
+        <h2>Aplicação</h2>
+        <center><div>
+            <style scoped>
+                @import "../static/css/chessboard-1.0.0.min.css";
+            </style>
+
+            <div id="myBoard" style="width: 400px"></div>
+        </div></center>
+    </div>
+</body>
+</html>
+
+<script>
+            
+    var board = null
+    var game = new Chess()
+    var $status = $('#status')
+    var $fen = $('#fen')
+    var $pgn = $('#pgn')
+    
+    function onDragStart (source, piece, position, orientation) {
+      // do not pick up pieces if the game is over
+      if (game.game_over()) return false
+    
+      // only pick up pieces for the side to move
+      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false
+      }
+    }
+
+    function onDrop (source, target) {
+      // see if the move is legal
+      var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+      })
+  
+      // illegal move
+      if (move === null) return 'snapback'
+
+      $.post('/make_move', {'fen': game.fen()}, function(data){
+        game.load(data.fen);
+        board.position(data.fen);
+      });
+    }
+
+    // update the board position after the piece snap
+    // for castling, en passant, pawn promotion
+    function onSnapEnd () {
+      board.position(game.fen())
+    }
+
+    function updateStatus () {
+      var status = ''
+    
+      var moveColor = 'White'
+      if (game.turn() === 'b') {
+        moveColor = 'Black'
+      }
+  
+      // checkmate?
+      if (game.in_checkmate()) {
+        status = 'Game over, ' + moveColor + ' is in checkmate.'
+      }
+  
+      // draw?
+      else if (game.in_draw()) {
+        status = 'Game over, drawn position'
+      }
+  
+      // game still on
+      else {
+        status = moveColor + ' to move'
+    
+        // check?
+        if (game.in_check()) {
+          status += ', ' + moveColor + ' is in check'
+        }
+      }
+  
+      $status.html(status)
+      $fen.html(game.fen())
+      $pgn.html(game.pgn())
+    }
+
+    var config = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd
+    }
+    board = Chessboard('myBoard', config)
+
+    updateStatus();
+    </script>

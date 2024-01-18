@@ -1,0 +1,35 @@
+body {
+    background-color: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+#titulo {
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;
+}
+
+#main_container {
+    width: 80%;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    color: black;
+    border-radius: 8px;
+}
+
+h1 {
+    color: white;
+}
+
+h2 {
+    color: black;
+    margin-bottom: 20px; /* Gap between h2 elements */
+}
+
+p {
+    line-height: 1.6;
+    color: black;
+    margin-left: 10px;
+}
