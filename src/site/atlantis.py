@@ -82,6 +82,19 @@ class Engine:
     ]
     valorReiPreto = list(reversed(valorReiBranco))
 
+    valorReiBrancoFinal = [
+        0.5, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.5,
+        -0.3, -0.3,  0.0,  0.0,  0.0,  0.0, -0.3, -0.3,
+        -0.3, -0.1,  0.2,  0.3,  0.3,  0.2, -0.1, -0.3,
+        -0.3, -0.1,  0.3,  0.4,  0.4,  0.3, -0.1, -0.3,
+        -0.3, -0.1,  0.3,  0.4,  0.4,  0.3, -0.1, -0.3,
+        -0.3, -0.1,  0.2,  0.3,  0.3,  0.2, -0.1, -0.3,
+        -0.3, -0.2, -0.1,  0.0,  0.0, -0.1, -0.2, -0.3,
+        -0.5, -0.4, -0.3, -0.2, -0.2, -0.3, -0.4, -0.5
+    ]
+
+    valorReiPretoFinal = list(reversed(valorReiBrancoFinal))
+
     valorDamaPreta = list(reversed(valorDamaBranca))
 
     def ordenarJogadas(self):
@@ -96,10 +109,10 @@ class Engine:
         elif self.cor == chess.BLACK:
             in_order = sorted(self.tab.legal_moves, key=ordenador, reverse=self.tab.turn==chess.WHITE)
 
-        if self.tab.fullmove_number < 10:
-            filter = in_order[-7:]
+        if self.tab.fullmove_number < 4:
+            filter = in_order[-6:]
         else:
-            filter = in_order[-10:]
+            filter = in_order[-8:]
 
         return list(filter)
 
@@ -113,26 +126,46 @@ class Engine:
             valorPeca = 1
         
         elif self.tab.piece_type_at(quad) == chess.KNIGHT:
-            valorPeca = 3.2
+            valorPeca = 3.3
 
         elif self.tab.piece_type_at(quad) == chess.BISHOP:
-            valorPeca = 3.33
+            valorPeca = 3.4
         
         elif self.tab.piece_type_at(quad) == chess.ROOK:
-            valorPeca = 5.1
+            valorPeca = 5
         
         elif self.tab.piece_type_at(quad) == chess.QUEEN:
-            valorPeca = 8.8
+            valorPeca = 9
         
-        if self.tab.color_at(quad) != self.cor:
-            return -valorPeca
+        if self.tab.color_at(quad) == chess.BLACK:
+            return valorPeca
         
         else:
-            return valorPeca
+            return -valorPeca
+
+    def verificarFinal(self):
+        damas = 0
+        pecasmen = 0
+        for i in chess.SQUARES:
+            if self.tab.piece_type_at(i) == chess.BISHOP:
+                pecasmen += 1
+            
+            elif self.tab.piece_type_at(i) == chess.KNIGHT:
+                pecasmen += 1
+            
+            elif self.tab.piece_type_at(i) == chess.QUEEN:
+                damas += 1
+        
+        if damas == 0 and pecasmen <= 2:
+            return True
+        
+        else:
+            return False
 
     def mapeamento(self):
         valor = 0
-        
+        final = self.verificarFinal()
+
         for i in chess.SQUARES:
             if self.tab.color_at(i) == chess.WHITE:    
                 if self.tab.piece_type_at(i) == chess.PAWN:
@@ -145,9 +178,11 @@ class Engine:
                     valor += self.valorTorreBranca[i]
                 elif self.tab.piece_type_at(i) == chess.QUEEN:
                     valor += self.valorDamaBranca[i]
-                elif self.tab.piece_type_at(i) == chess.KING:
+                elif self.tab.piece_type_at(i) == chess.KING and final == False:
                     valor += self.valorReiBranco[i]
-            
+
+                elif self.tab.piece_type_at(i) == chess.KING and final == True:
+                    valor += self.valorReiBrancoFinal[i]
             else:
                 if self.tab.piece_type_at(i) == chess.PAWN:
                     valor += self.valorPeaoPreto[i]
@@ -159,21 +194,20 @@ class Engine:
                     valor += self.valorTorrePreta[i]
                 elif self.tab.piece_type_at(i) == chess.QUEEN:
                     valor += self.valorDamaPreta[i]
-                elif self.tab.piece_type_at(i) == chess.KING:
+                elif self.tab.piece_type_at(i) == chess.KING and final == False:
                     valor += self.valorReiPreto[i]
+                
+                elif self.tab.piece_type_at(i) == chess.KING and final == True:
+                    valor += self.valorReiPretoFinal[i]
 
         return valor
     
     def abertura(self):
-        if self.tab.fullmove_number <= 10:
-            if self.tab.turn == chess.WHITE:
-                ab = 1/30 * self.tab.legal_moves.count()
-            else:
-                ab = 1/30 * self.tab.legal_moves.count()
+        if self.tab.fullmove_number <= 4:
+            ab = 1/30 * self.tab.legal_moves.count()
         else:
             ab = 0
-	
-    
+
         return ab
     
     def avalTab(self):
@@ -181,7 +215,7 @@ class Engine:
 
         for i in range(64):
             valor += self.valorPecas(chess.SQUARES[i])
-        valor += self.mate() + self.abertura() + self.mapeamento() + 0.01 * random.random()
+        valor += self.mate() + self.abertura() + self.mapeamento() + 0.001 * random.random()
         
         return valor
     
@@ -253,5 +287,5 @@ def generateMove(fen, profmax, cor):
     tab = chess.Board(fen)
     engine = Engine(tab, profmax, cor)
     jog = engine.melhorJogada()
-    print(engine.abertura())
+    print(engine.verificarFinal())
     return jog

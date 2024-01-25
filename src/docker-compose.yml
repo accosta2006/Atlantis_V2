@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  atlantis:
+    build: .
+
+    volumes:
+      - ./site/:/atlantis/
+
+    entrypoint: /run.sh
+
+    ports:
+      - "5000:5000"
+
+    restart: always
