@@ -3,7 +3,7 @@ version: '3'
 services:
   atlantis:
     build: .
-
+    tty: true
     volumes:
       - ./site/:/atlantis/
 

@@ -1,13 +1,16 @@
 import chess
+import numpy as np
+import time
 import random
 
 class Engine:
     def __init__(self, tab, profmax, cor):
         self.tab = tab
         self.cor = cor
+        self.nodes_processed = 0
         self.profmax = profmax
 
-    valorPeaoBranco = [
+    valorPeaoBranco = np.array([
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.05, 0.1, 0.1, -0.2, -0.2, 0.1, 0.1, 0.05,
         0.05, -0.05, -0.1, 0.0, 0.0, -0.1, -0.05, 0.05,
@@ -16,11 +19,11 @@ class Engine:
         0.1, 0.1, 0.2, 0.3, 0.3, 0.2, 0.1, 0.1,
         0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-    ]
+    ])
 
-    valorPeaoPreto = list(reversed(valorPeaoBranco))
+    valorPeaoPreto = np.array(list(reversed(valorPeaoBranco)))
 
-    valorCavaloBranco = [
+    valorCavaloBranco = np.array([
         -0.5, -0.4, -0.3, -0.3, -0.3, -0.3, -0.4, -0.5,
         -0.4, -0.2, 0.0, 0.0, 0.0, 0.0, -0.2, -0.4,
         -0.3, 0.0, 0.1, 0.15, 0.15, 0.1, 0.0, -0.3,
@@ -29,24 +32,24 @@ class Engine:
         -0.3, 0.05, 0.1, 0.15, 0.15, 0.1, 0.05, -0.3,
         -0.4, -0.2, 0.0, 0.05, 0.05, 0.0, -0.2, -0.4,
         -0.5, -0.4, -0.3, -0.3, -0.3, -0.3, -0.4, -0.5
-    ]
+    ])
 
-    valorCavaloPreto = list(reversed(valorCavaloBranco))
+    valorCavaloPreto = np.array(list(reversed(valorCavaloBranco)))
 
-    valorBispoBranco = [
-        -0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2,
-        -0.1, 0.05, 0.0, 0.0, 0.0, 0.0, 0.05, -0.1,
-        -0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, -0.1,
-        -0.1, 0.0, 0.1, 0.1, 0.1, 0.1, 0.0, -0.1,
-        -0.1, 0.05, 0.05, 0.1, 0.1, 0.05, 0.05, -0.1,
-        -0.1, 0.0, 0.05, 0.1, 0.1, 0.05, 0.0, -0.1,
-        -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1,
-        -0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2
-    ]
+    valorBispoBranco = np.array([
+    -0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2,
+    -0.1, 0.05, 0.0, 0.0, 0.0, 0.0, 0.05, -0.1,
+    -0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, -0.1,
+    -0.1, 0.0, 0.1, 0.1, 0.1, 0.1, 0.0, -0.1,
+    -0.1, 0.05, 0.05, 0.1, 0.1, 0.05, 0.05, -0.1,
+    -0.1, 0.0, 0.05, 0.1, 0.1, 0.05, 0.0, -0.1,
+    -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1,
+    -0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2
+])
 
-    valorBispoPreto = list(reversed(valorBispoBranco))
+    valorBispoPreto = np.array(list(reversed(valorBispoBranco)))
 
-    valorTorreBranca = [
+    valorTorreBranca = np.array([
         0.0, 0.0, 0.0, 0.05, 0.05, 0.0, 0.0, 0.0,
         -0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.05,
         -0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.05,
@@ -55,11 +58,11 @@ class Engine:
         -0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.05,
         0.05, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.05,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-    ]
+    ])
 
-    valorTorrePreta = list(reversed(valorTorreBranca))
+    valorTorrePreta = np.array(list(reversed(valorTorreBranca)))
 
-    valorDamaBranca = [
+    valorDamaBranca = np.array([
         -0.2, -0.1, -0.1, -0.05, -0.05, -0.1, -0.1, -0.2,
         -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1,
         -0.1, 0.0, 0.05, 0.05, 0.05, 0.05, 0.0, -0.1,
@@ -68,9 +71,11 @@ class Engine:
         -0.1, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, -0.1,
         -0.1, 0.0, 0.05, 0.0, 0.0, 0.0, 0.0, -0.1,
         -0.2, -0.1, -0.1, -0.05, -0.05, -0.1, -0.1, -0.2
-    ]
+    ])
 
-    valorReiBranco = [
+    valorDamaPreta = np.array(list(reversed(valorDamaBranca)))
+
+    valorReiBranco = np.array([
         0.02, 0.03, 0.01, 0.0, 0.0, 0.1, 0.3, 0.2,
         0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2,
         -0.1, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.1,
@@ -79,10 +84,11 @@ class Engine:
         -0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3,
         -0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3,
         -0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3
-    ]
-    valorReiPreto = list(reversed(valorReiBranco))
+    ])
 
-    valorReiBrancoFinal = [
+    valorReiPreto = np.array(list(reversed(valorReiBranco)))
+
+    valorReiBrancoFinal = np.array([
         0.5, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.5,
         -0.3, -0.3,  0.0,  0.0,  0.0,  0.0, -0.3, -0.3,
         -0.3, -0.1,  0.2,  0.3,  0.3,  0.2, -0.1, -0.3,
@@ -91,11 +97,9 @@ class Engine:
         -0.3, -0.1,  0.2,  0.3,  0.3,  0.2, -0.1, -0.3,
         -0.3, -0.2, -0.1,  0.0,  0.0, -0.1, -0.2, -0.3,
         -0.5, -0.4, -0.3, -0.2, -0.2, -0.3, -0.4, -0.5
-    ]
+    ])
 
-    valorReiPretoFinal = list(reversed(valorReiBrancoFinal))
-
-    valorDamaPreta = list(reversed(valorDamaBranca))
+    valorReiPretoFinal = np.array(list(reversed(valorReiBrancoFinal)))
 
     def ordenarJogadas(self):
         def ordenador(jog):
@@ -105,14 +109,14 @@ class Engine:
             return valor  
 	    
         if self.cor == chess.WHITE:
-            in_order = sorted(self.tab.legal_moves, key=ordenador, reverse=self.tab.turn==chess.BLACK)
+            in_order = np.array(sorted(self.tab.legal_moves, key=ordenador, reverse=self.tab.turn==chess.BLACK))
         elif self.cor == chess.BLACK:
-            in_order = sorted(self.tab.legal_moves, key=ordenador, reverse=self.tab.turn==chess.WHITE)
+            in_order = np.array(sorted(self.tab.legal_moves, key=ordenador, reverse=self.tab.turn==chess.WHITE))
 
         if self.tab.fullmove_number < 4:
-            filter = in_order[-6:]
+            filter = np.array(in_order[-10:])
         else:
-            filter = in_order[-8:]
+            filter = np.array(in_order[-12:])
 
         return list(filter)
 
@@ -230,6 +234,7 @@ class Engine:
            
     def minimax(self, cand, prof, alpha=float("-inf"), beta=float("inf")):
         if (prof == self.profmax or self.tab.legal_moves.count() == 0):
+            self.nodes_processed += 1
             return self.avalTab()
     
         else:
@@ -282,10 +287,18 @@ class Engine:
                     return novoCand
                 else:
                     return jog
-            
+    
 def generateMove(fen, profmax, cor):
     tab = chess.Board(fen)
     engine = Engine(tab, profmax, cor)
+    start_time = time.time()
     jog = engine.melhorJogada()
-    print(engine.verificarFinal())
+    end_time = time.time()
+
+    duracao = end_time - start_time
+
+    nodes_per_second = engine.nodes_processed / duracao
+
+    print(f"Nodes per second: {nodes_per_second:.2f}")
+
     return jog

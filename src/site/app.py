@@ -12,8 +12,7 @@ def root():
 
 @app.route('/make_move', methods=['POST'])
 async def make_move():
-    #fen = request.form.get('fen')
-    fen = '1K6/1P1k4/8/8/8/8/2R5/r7 w - - 0 1'
+    fen = request.form.get('fen')
     board = chess.Board(fen)
 
     result = atlantis.generateMove(fen, 5, chess.BLACK)
